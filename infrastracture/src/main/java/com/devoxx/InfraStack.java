@@ -47,7 +47,6 @@ public class InfraStack extends Stack {
         Function lambda = Function.Builder.create(this, "DevoxxLambda")
                 .functionName("DevoxxLambda")
                 .runtime(Runtime.JAVA_17)
-                .architecture(Architecture.ARM_64)
                 .handler("com.devoxx.DevoxxLambda::handleRequest")
                 .code(Code.fromBucket(lambdaBucket, "devoxxlambda-1.0.0.jar"))
                 .memorySize(1024)
