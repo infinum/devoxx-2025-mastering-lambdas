@@ -1,0 +1,50 @@
+name: Integration tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-lambda:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+      - name: Maven package
+        run: |
+          cd devoxx-lambda-processor
+          mvn install
+      - uses: actions/upload-artifact@v4
+        with:
+          name: devoxxlambda
+          path: ./devoxx-lambda-processor/target/devoxxlambda-1.0.0.jar
+          retention-days: 20
+
+  build-infrastructure-and-run-tests:
+    runs-on: ubuntu-22.04
+    needs: build-lambda
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - uses: docker/setup-docker-action@v4
+      - uses: actions/download-artifact@v5
+        with:
+          name: devoxxlambda
+          path: ./infrastracture/
+      - name: Maven package
+        env:
+          LAMBDA_PATH: devoxxlambda-1.0.0.jar
+          SYSTEM_TEST: true
+        run: |
+          cd infrastracture
+          mvn install
