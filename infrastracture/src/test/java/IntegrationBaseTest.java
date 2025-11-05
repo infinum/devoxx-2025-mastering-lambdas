@@ -37,13 +37,17 @@ public class IntegrationBaseTest {
             .withExposedPorts(4566);
 
     public static void deployCdkStackToLocalStack() throws JsonProcessingException {
+        String path = System.getenv("LAMBDA_PATH");
+        if (path == null) {
+         path = "../devoxx-lambda-processor/target/devoxxlambda-1.0.0.jar";
+        }
         s3 = s3Client();
         System.setProperty("ENDPOINT", localstack.getEndpoint().toString());
 
         String bucketName = "devoxx-lambda-bucket";
         s3.createBucket(b -> b.bucket(bucketName));
 
-        Path jarFile = Path.of("../devoxx-lambda-processor/target/devoxxlambda-1.0.0.jar");
+        Path jarFile = Path.of(path);
         s3.putObject(b -> b.bucket(bucketName).key("devoxxlambda-1.0.0.jar"),
                 RequestBody.fromFile(jarFile));
 
