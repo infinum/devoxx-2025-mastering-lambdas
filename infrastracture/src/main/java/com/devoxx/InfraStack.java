@@ -1,3 +1,5 @@
+package com.devoxx;
+
 import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
