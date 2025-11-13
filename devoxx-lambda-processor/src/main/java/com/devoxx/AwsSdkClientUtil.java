@@ -8,7 +8,9 @@ import java.net.URI;
 public class AwsSdkClientUtil {
 
     public static DynamoDbClient createDynamoDbClient() {
-        String endpoint = System.getenv("ENDPOINT");
+        //For system and unit tests
+        String endpoint = System.getenv("ENDPOINT") != null ? System.getenv("ENDPOINT") : System.getProperty("ENDPOINT") ;
+
         DynamoDbClientBuilder builder = DynamoDbClient.builder();
         if (endpoint != null) {
             builder.endpointOverride(URI.create(endpoint));

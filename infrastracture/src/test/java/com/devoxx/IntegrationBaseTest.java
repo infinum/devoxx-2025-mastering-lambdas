@@ -75,13 +75,7 @@ public class IntegrationBaseTest {
         ObjectMapper mapper = new ObjectMapper();
         String templateBody = mapper.writeValueAsString(cdkTemplate.toJSON());
 
-        CloudFormationClient cfClient = CloudFormationClient.builder()
-                .endpointOverride(localstack.getEndpoint())
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())
-                ))
-                .region(Region.of("eu-central-1"))
-                .build();
+        CloudFormationClient cfClient = createCfnClient();
 
         try {
             cfClient.createStack(CreateStackRequest.builder()
@@ -95,6 +89,16 @@ public class IntegrationBaseTest {
             e.printStackTrace();
             Assertions.fail("Failed to deploy CDK stack to LocalStack");
         }
+    }
+
+    private static CloudFormationClient createCfnClient() {
+        return CloudFormationClient.builder()
+                .endpointOverride(localstack.getEndpoint())
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(localstack.getAccessKey(), localstack.getSecretKey())
+                ))
+                .region(Region.of("eu-central-1"))
+                .build();
     }
 
     public static S3Client s3Client() {

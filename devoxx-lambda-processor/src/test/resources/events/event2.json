@@ -1,20 +1,20 @@
 {
     "Records": [
         {
-            "messageId": "059f36b4-87a3-44ab-83d2-661975830a7d",
-            "receiptHandle": "AQEBwJnKyrHigUMZj6rYigCgxlaS3SLy0a...",
+            "messageId": "9f2c9448-2235-448a-bbfc-fb8790ffd3b6",
+            "receiptHandle": "12345678",
             "body": "{\n    \"uuid\": \"57630622-a58a-447e-ab18-dec352d3e6ee\",\n    \"companyId\": \"devoxx-b789f57c-dc28-4a0b-8462-07a8afc4953c\",\n    \"name\": \"Laptop\",\n    \"price\": 1199.99,\n    \"quantity\": 2\n}",
             "attributes": {
                 "ApproximateReceiveCount": "1",
-                "SentTimestamp": "1545082649183",
+                "SentTimestamp": "1763026580",
                 "SenderId": "AIDAIENQZJOLO23YVJ4VO",
-                "ApproximateFirstReceiveTimestamp": "1545082649185"
+                "ApproximateFirstReceiveTimestamp": "1763026581"
             },
             "messageAttributes": {},
             "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
             "eventSource": "aws:sqs",
-            "eventSourceARN": "arn:aws:sqs:us-east-1:111122223333:my-queue",
-            "awsRegion": "us-east-1"
+            "eventSourceARN": "arn:aws:sqs:eu-west-1:111122223333:ItemQueue",
+            "awsRegion": "eu-west-1"
         }
     ]
 }

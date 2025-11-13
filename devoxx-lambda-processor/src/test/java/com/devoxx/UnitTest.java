@@ -17,6 +17,8 @@ class UnitTest {
     @BeforeEach
     public void setup() {
         System.setProperty("aws.region", "eu-central-1");
+        System.setProperty("aws.accessKeyId", "test");
+        System.setProperty("aws.secretAccessKey", "test");
         devoxxLambda = new DevoxxLambda(dynamoDbClient);
     }
 

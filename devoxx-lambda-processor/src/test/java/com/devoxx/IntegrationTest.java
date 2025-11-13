@@ -33,18 +33,16 @@ class IntegrationTest {
     private static SqsClient sqs;
     private static DynamoDbClient dynamoDb;
     private static String queueUrl;
-
-    private static final Network network = Network.builder().createNetworkCmdModifier(cmd -> cmd.withName("localstack-network")).build();
-
     @Container
     static LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:4.1.0"))
-            .withNetwork(network)
-            .withNetworkAliases("localstack")
             .withExposedPorts(4566);
 
     @BeforeEach
     public void setUp() {
         System.setProperty("aws.region", "eu-central-1");
+        System.setProperty("aws.accessKeyId", localstack.getAccessKey());
+        System.setProperty("aws.secretAccessKey", localstack.getSecretKey());
+        System.setProperty("ENDPOINT", localstack.getEndpoint().toString());
         sqs = SqsClient.builder()
                 .endpointOverride(localstack.getEndpointOverride(LocalStackContainer.Service.SQS))
                 .region(Region.of("eu-central-1"))
@@ -106,7 +104,7 @@ class IntegrationTest {
             sqsEvent.setRecords(List.of(sqsMessage));
         }
 
-        DevoxxLambda handler = new DevoxxLambda(dynamoDb);
+        DevoxxLambda handler = new DevoxxLambda();
         handler.handleRequest(sqsEvent, null);
 
         await()
