@@ -1,4 +1,5 @@
-import com.devoxx.Item;
+package com.devoxx;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
@@ -30,7 +31,7 @@ public class IntegrationTest extends IntegrationBaseTest {
 
     @Test
     public void shouldSendMessageToSqsAndStoreInDynamoDb() throws JsonProcessingException {
-        String companyId = "devx-" + UUID.randomUUID();
+        String companyId = "devoxx-" + UUID.randomUUID();
         String uuid = UUID.randomUUID().toString();
 
         ObjectMapper objectMapper = new ObjectMapper();

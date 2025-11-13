@@ -1,1 +1,0 @@
-# lambda-devoxx-morocco-2025

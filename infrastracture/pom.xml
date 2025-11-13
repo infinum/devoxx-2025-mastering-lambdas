@@ -27,16 +27,23 @@
     <dependencies>
         <!-- AWS CDK -->
         <dependency>
+            <groupId>software.constructs</groupId>
+            <artifactId>constructs</artifactId>
+            <version>10.3.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>software.amazon.awscdk</groupId>
             <artifactId>aws-cdk-lib</artifactId>
             <version>${cdk.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>software.constructs</groupId>
-            <artifactId>constructs</artifactId>
-            <version>10.3.0</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.18.0</version>
         </dependency>
+
 
         <!-- AWS SDK v2 -->
         <dependency>
@@ -100,12 +107,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${testcontainers.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.example</groupId>
-            <artifactId>devoxxlambda</artifactId>
-            <version>1.0.0</version>
             <scope>test</scope>
         </dependency>
 

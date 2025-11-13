@@ -4,58 +4,58 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.SQSEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-
-import java.net.URI;
+import software.amazon.lambda.powertools.logging.Logging;
 
 public class DevoxxLambda implements RequestHandler<SQSEvent, String> {
+
+    private static final Logger LOGGER = LogManager.getLogger(DevoxxLambda.class);
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final DynamoDbClient dynamoDbClient;
     private final DynamoDbEnhancedClient enhancedClient;
 
+    private static final String TABLE_NAME = System.getenv("TABLE_NAME") != null ? System.getenv("TABLE_NAME") : "Items";
+
     public DevoxxLambda() {
-        // Read environment variables
-        String dynamoEndpoint = System.getenv("DYNAMODB_ENDPOINT");
-        TABLE_NAME = System.getenv("TABLE_NAME");
-
-        // Build DynamoDbClient pointing to LocalStack
-        dynamoDbClient = DynamoDbClient.builder()
-                .endpointOverride(URI.create("http://localstack:4566"))
-                .region(Region.EU_CENTRAL_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("test", "test"))) // LocalStack dummy creds
-                .build();
-
+        dynamoDbClient = AwsSdkClientUtil.createDynamoDbClient();
         enhancedClient = DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(dynamoDbClient)
                 .build();
     }
-    private static String TABLE_NAME = System.getenv("TABLE_NAME");
 
+    public DevoxxLambda(DynamoDbClient dynamoDbClient) {
+        this.dynamoDbClient = dynamoDbClient;
+        this.enhancedClient = DynamoDbEnhancedClient.builder()
+                .dynamoDbClient(dynamoDbClient)
+                .build();
+    }
+
+    @Logging(logEvent = true)
     @Override
     public String handleRequest(SQSEvent event, Context context) {
-        context.getLogger().log("Received " + event.getRecords().size() + " messages\n");
+        LOGGER.info("Processing {} messages from SQS", event.getRecords().size());
 
         DynamoDbTable<Item> itemTable = enhancedClient.table(TABLE_NAME, TableSchema.fromBean(Item.class));
 
-        event.getRecords().forEach(msg -> {
+        event.getRecords().forEach(record -> {
             try {
-                Item item = objectMapper.readValue(msg.getBody(), Item.class);
+                Item item = objectMapper.readValue(record.getBody(), Item.class);
                 itemTable.putItem(item);
-                context.getLogger().log("Saved: " + item + "\n");
+                LOGGER.info("Saved item: {}", item);
             } catch (Exception e) {
-                context.getLogger().log("Error processing message: " + e.getMessage() + "\n");
+                LOGGER.error("Error processing message", e);
             }
         });
 
-        return "Processed " + event.getRecords().size() + " messages.";
+        LOGGER.debug("SQS event processing complete");
+        return null;
+
     }
 }
