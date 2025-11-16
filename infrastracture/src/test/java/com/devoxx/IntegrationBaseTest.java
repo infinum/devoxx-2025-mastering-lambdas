@@ -31,7 +31,11 @@ public class IntegrationBaseTest {
     public static InfraStack stack;
     public static S3Client s3;
     private static final String stackName = "InfraStackTest";
+    public static final ObjectMapper mapper = new ObjectMapper();
 
+    // We have to use network mode here since AWS Lambda will be created as another container
+    // To reach SQS EventSource Mapping and DynamoDB communication it will need to call Localstack Container
+    // We need container to container communication
     private static final Network network = Network.builder().createNetworkCmdModifier(cmd -> cmd.withName("localstack-network")).build();
     @Container
     private static final LocalStackContainer localstack = new LocalStackContainer(DockerImageName.parse("localstack/localstack:4.1.0"))
@@ -45,38 +49,18 @@ public class IntegrationBaseTest {
     }
 
     public static void deployCdkStackToLocalStack() throws JsonProcessingException {
-        String path = System.getenv("LAMBDA_PATH");
-        if (path == null) {
-         path = "../devoxx-lambda-processor/target/devoxxlambda-1.0.0.jar";
-        }
-        s3 = s3Client();
+        //Setting property variables so they can be used in InfraStack
         System.setProperty("ENDPOINT", "http://localstack:4566");
-        System.setProperty("SYSTEM_TEST", "false");
-        String bucketName = "devoxx-lambda-bucket-2025-unknown";
-        s3.createBucket(b -> b.bucket(bucketName));
+        System.setProperty("SYSTEM_TEST", "true");
+        createS3BucketAndUploadJarToIt();
+        createStack();
 
-        Path jarFile = Path.of(path);
-        s3.putObject(b -> b.bucket(bucketName).key("devoxxlambda-1.0.0.jar"),
-                RequestBody.fromFile(jarFile));
-
-
-        App app = new App();
-        StackProps props = StackProps.builder()
-                .env(Environment.builder()
-                        .account("000000000000")
-                        .region(Region.EU_CENTRAL_1.toString())
-                        .build())
-                .synthesizer(new LegacyStackSynthesizer())
-                .build();
-
-        stack = new InfraStack(app, "InfraStackTest", props);
-
-        Template cdkTemplate = Template.fromStack(stack);
-        ObjectMapper mapper = new ObjectMapper();
-        String templateBody = mapper.writeValueAsString(cdkTemplate.toJSON());
+        String templateBody = convertStackToJson();
 
         CloudFormationClient cfClient = createCfnClient();
 
+        // Create Stack on Localstack Testcontainer. Notice how Lambda container will be created and SQS
+        // EventSource mapping will be set correctly meaning Cfn deployment on Localstack is working!
         try {
             cfClient.createStack(CreateStackRequest.builder()
                     .stackName(stackName)
@@ -89,6 +73,41 @@ public class IntegrationBaseTest {
             e.printStackTrace();
             Assertions.fail("Failed to deploy CDK stack to LocalStack");
         }
+    }
+
+    private static String convertStackToJson() throws JsonProcessingException {
+        Template cdkTemplate = Template.fromStack(stack);
+        return mapper.writeValueAsString(cdkTemplate.toJSON());
+    }
+
+    //We create CDK stack which will be later used to as CFN Json template for createStack() method
+    private static void createStack() {
+        App app = new App();
+        StackProps props = StackProps.builder()
+                .env(Environment.builder()
+                        .account("000000000000")
+                        .region(Region.EU_CENTRAL_1.toString())
+                        .build())
+                .synthesizer(new LegacyStackSynthesizer())
+                .build();
+
+        stack = new InfraStack(app, "InfraStackTest", props);
+    }
+
+    //We have to create S3 bucket since Code.fromAsset will cause the issues when we do Cloudformation createStack()
+    //Reason behind this is that CloudFormation will look for S3 metadata and need internal S3 bucket to create Function
+    private static void createS3BucketAndUploadJarToIt() {
+        String path = System.getenv("LAMBDA_PATH");
+        if (path == null) {
+         path = "../devoxx-lambda-processor/target/devoxxlambda-1.0.0.jar";
+        }
+        s3 = s3Client();
+        String bucketName = "devoxx-lambda-bucket-2025-unknown";
+        s3.createBucket(b -> b.bucket(bucketName));
+
+        Path jarFile = Path.of(path);
+        s3.putObject(b -> b.bucket(bucketName).key("devoxxlambda-1.0.0.jar"),
+                RequestBody.fromFile(jarFile));
     }
 
     private static CloudFormationClient createCfnClient() {

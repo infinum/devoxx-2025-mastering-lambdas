@@ -1,7 +1,6 @@
 package com.devoxx;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -34,8 +33,6 @@ public class IntegrationTest extends IntegrationBaseTest {
         String companyId = "devoxx-" + UUID.randomUUID();
         String uuid = UUID.randomUUID().toString();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-
         Item item = new Item(
                 uuid,
                 companyId,
@@ -44,8 +41,9 @@ public class IntegrationTest extends IntegrationBaseTest {
                 5
         );
 
-        String message = objectMapper.writeValueAsString(item);
+        String message = mapper.writeValueAsString(item);
 
+        // We can expose cfn parameter from Stack but since we are specifying account 000000000000 it queue url will always be the same
         sqs.sendMessage(SendMessageRequest.builder()
                 .queueUrl("http://sqs.eu-central-1.localhost:4566/000000000000/ItemQueue")
                 .messageBody(message)

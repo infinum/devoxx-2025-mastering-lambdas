@@ -21,11 +21,14 @@ public class DevoxxLambda implements RequestHandler<SQSEvent, String>, Resource 
     private final DynamoDbClient dynamoDbClient;
     private final DynamoDbEnhancedClient enhancedClient;
 
+    private static DynamoDbTable<Item> itemTable;
+
     public DevoxxLambda() {
         dynamoDbClient = AwsSdkClientUtil.createDynamoDbClient();
         enhancedClient = DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(dynamoDbClient)
                 .build();
+        itemTable = enhancedClient.table(TABLE_NAME, TableSchema.fromBean(Item.class));
     }
 
 
@@ -34,7 +37,6 @@ public class DevoxxLambda implements RequestHandler<SQSEvent, String>, Resource 
     public String handleRequest(SQSEvent event, Context context) {
         LOGGER.info("Processing {} messages from SQS", event.getRecords().size());
 
-        DynamoDbTable<Item> itemTable = enhancedClient.table(TABLE_NAME, TableSchema.fromBean(Item.class));
 
         event.getRecords().forEach(record -> {
             try {

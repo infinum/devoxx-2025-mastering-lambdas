@@ -41,6 +41,7 @@ public class InfraStack extends Stack {
                     .code(determinePath(systemTest, path, null))
                     .architecture(Architecture.ARM_64)
                     .snapStart(SnapStartConf.ON_PUBLISHED_VERSIONS).build();
+
             Version version = Version.Builder.create(this, "JavaLambdaVersion1")
                     .lambda(lambda)
                     .description("Published AWS Lambda Version")
